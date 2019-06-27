@@ -11,14 +11,25 @@ const app = express();
 app.use(cors());
 app.use(morgan('dev'));
 
+//sequelize models
+const db = require('./models');
+const Category = db.Category;
+
 // Router files
 
 // Routes
 // eslint-disable-next-line
-app.get('/api/test', (req, res, next) => {
-    res.json({
-        message: 'Route working'
-    });
+app.get('/api/categories', (req, res, next) => {
+    console.log("hello!");
+    Category.findAll()
+        .then(categories => {
+            res.json({
+                categories
+            });
+        })
+        .catch(error => {
+            next(error);
+        });
 });
 
 // Error handling
