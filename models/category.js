@@ -7,6 +7,9 @@ module.exports = (sequelize, DataTypes) => {
     // eslint-disable-next-line
     Category.associate = function(models) {
         // associations can be defined here
+        Category.hasMany(models.Product, {
+            foreignKey: 'categoryId'
+        });
     };
     return Category;
 };
