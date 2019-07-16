@@ -1,6 +1,9 @@
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const morgan = require('morgan');
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+
 
 // eslint-disable-next-line
 const PORT = process.env.PORT || 4000;
@@ -32,7 +35,7 @@ app.get('/api/categories', (req, res, next) => {
         })
         .catch(error => {
             next(error);
-        });
+        });    
 });
 
 app.get('/api/products', (req, res, next) =>{
@@ -49,6 +52,7 @@ app.get('/api/products', (req, res, next) =>{
         });
 });
 
+// eslint-disable-next-line
 app.get('/api/products/:id', (req, res, next) => {
     const id = req.params.id;
 
@@ -61,6 +65,30 @@ app.get('/api/products/:id', (req, res, next) => {
         .catch(error => {
             console.log(error);
         });
+});
+
+app.post('/api/checkout', async (req, res, next) => {
+    const lineItems = [{
+        name: 'T-shirt',
+        description: 'Comfortable cotton t-shirt',
+        images: ['http://lorempixel.com/400/200/'],
+        amount: 500,
+        currency: 'usd',
+        quantity: 1,
+    }];
+
+    try {
+        const session = await stripe.checkout.sessions.create({
+            payment_method_types: ['card'],
+            line_items: lineItems,
+            success_url: 'http://localhost:3000/success',
+            cancel_url: 'http://localhost:3000/cancel'
+        });
+        res.json({ session });
+    }
+    catch (error) {
+        next({ error });
+    }
 });
 
 // Error handling
