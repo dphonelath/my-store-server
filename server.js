@@ -14,6 +14,7 @@ const app = express();
 
 app.use(cors());
 app.use(morgan('dev'));
+app.use(express.json())
 
 //sequelize models
 const db = require('./models');
@@ -68,14 +69,8 @@ app.get('/api/products/:id', (req, res, next) => {
 });
 
 app.post('/api/checkout', async (req, res, next) => {
-    const lineItems = [{
-        name: 'T-shirt',
-        description: 'Comfortable cotton t-shirt',
-        images: ['http://lorempixel.com/400/200/'],
-        amount: 500,
-        currency: 'usd',
-        quantity: 1,
-    }];
+    const lineItem = req.body;
+    const lineItems = [lineItem];
 
     try {
         //Create session
