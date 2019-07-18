@@ -3,18 +3,40 @@ const express = require('express');
 const cors = require('cors');
 const morgan = require('morgan');
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
-
+const jwt = require("express-jwt");
+const jwksRsa = require("jwks-rsa");
 
 // eslint-disable-next-line
 const PORT = process.env.PORT || 4000;
-
 const app = express();
+
+// Set up Auth0 configuration
+const authConfig = {
+    domain: "dev-9clv81uz.auth0.com",
+    audience: "http://localhost:4000"
+};
+
+// Define middleware that validates incoming bearer tokens
+// using JWKS from dev-9clv81uz.auth0.com
+const checkJwt = jwt({
+    secret: jwksRsa.expressJwtSecret({
+        cache: true,
+        rateLimit: true,
+        jwksRequestsPerMinute: 5,
+        jwksUri: `https://${authConfig.domain}/.well-known/jwks.json`
+    }),
+
+    audience: authConfig.audience,
+    issuer: `https://${authConfig.domain}/`,
+    algorithm: ["RS256"]
+});
 
 // Middleware
 
 app.use(cors());
 app.use(morgan('dev'));
-app.use(express.json())
+app.use(express.json());
+
 
 //sequelize models
 const db = require('./models');
@@ -86,6 +108,12 @@ app.post('/api/checkout', async (req, res, next) => {
     catch (error) {
         next({ error });
     }
+});
+
+app.get("/api/external", checkJwt, (req, res) => {
+    res.json({
+        msg: "Your Access Token was successfully validated!"
+    });
 });
 
 // Error handling
